@@ -1,0 +1,51 @@
+#!/bin/bash
+
+set -e
+
+# Get actual DNS registry value from CloudFlare
+function getActualCFIP() {
+    IP_CLOUDFLARE=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/dns_records/$CF_RECORD_ID" \
+        -H "Authorization: Bearer $CF_API_KEY" \
+        -H "Content-Type: application/json" | jq -r '.result.content')
+
+    echo $IP_CLOUDFLARE
+}
+
+# Update of the DNS registry in CloudFlare
+function updateDNS() {
+    RESPONSE=$(curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/dns_records/$CF_RECORD_ID" \
+        -H "Authorization: Bearer $CF_API_KEY" \
+        -H "Content-Type: application/json" \
+        --data "{\"type\":\"$REGISTRY_TYPE\",\"name\":\"$CF_RECORD_NAME\",\"content\":\"$PUBLIC_IP\",\"ttl\":1,\"proxied\":true}")
+
+    # Checks that the curl was done succesfully
+    if echo "$RESPONSE" | grep -q "\"success\":true"; then
+        echo "DNS update was done succesfully: $PUBLIC_IP"
+    else
+        echo "Error while updating DNS"
+        echo "Message: $RESPONSE"
+    fi
+}
+
+# It gets my actual Public IP
+PUBLIC_IP=$(curl -s http://ifconfig.me)
+
+# Checks if the IP is IPv4 or IPv6 and set the type of registry
+if echo "$PUBLIC_IP" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'; then
+    REGISTRY_TYPE="A"
+elif echo "$PUBLIC_IP" | grep -qE '^[0-9a-fA-F:]+$'; then
+    REGISTRY_TYPE="AAAA"
+else
+    echo "Unkown IP"
+    exit 1
+fi
+
+# Checks if the IP is different or not
+IP_CLOUDFLARE_ACTUAL=$(getActualCFIP)
+
+if [ "$PUBLIC_IP" != "$IP_CLOUDFLARE_ACTUAL" ]; then
+    echo "The IP differs. Updating DNS registry..."
+    updateDNS
+else
+    echo "The IP is the same."
+fi
