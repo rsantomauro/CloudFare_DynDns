@@ -16,7 +16,7 @@ function updateDNS() {
     RESPONSE=$(curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/dns_records/$CF_RECORD_ID" \
         -H "Authorization: Bearer $CF_API_KEY" \
         -H "Content-Type: application/json" \
-        --data "{\"type\":\"$REGISTRY_TYPE\",\"name\":\"$CF_RECORD_NAME\",\"content\":\"$PUBLIC_IP\",\"ttl\":1,\"proxied\":true}")
+        --data "{\"type\":\"$REGISTRY_TYPE\",\"name\":\"$CF_RECORD_NAME\",\"content\":\"$PUBLIC_IP\",\"ttl\":1,\"proxied\":false}")
 
     # Checks that the curl was done succesfully
     if echo "$RESPONSE" | grep -q "\"success\":true"; then
@@ -28,7 +28,8 @@ function updateDNS() {
 }
 
 # It gets my actual Public IP
-PUBLIC_IP=$(curl -s http://ifconfig.me)
+# PUBLIC_IP=$(curl -s http://ifconfig.me)
+PUBLIC_IP=$(curl -s https://ipinfo.io/ip)
 
 # Checks if the IP is IPv4 or IPv6 and set the type of registry
 if echo "$PUBLIC_IP" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'; then
@@ -48,4 +49,3 @@ if [ "$PUBLIC_IP" != "$IP_CLOUDFLARE_ACTUAL" ]; then
     updateDNS
 else
     echo "The IP is the same."
-fi
