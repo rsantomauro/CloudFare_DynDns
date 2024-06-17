@@ -2,15 +2,6 @@
 
 The main idea of this project is to update DNS registry when my public IP is changed. So you can set this process to run every time you like in order to keep DNS updated.
 
-## Requirements
-
-Make sure that you had installaked the packakes yq, curl
-
-```bash
-apt install yq curl
-yum install yq curl
-```
-
 ## Export variables
 
 Create a env.sh file to export the variables:
@@ -32,4 +23,10 @@ source env.sh
 
 ```bash
 chmod +x cf_updateDNS
+```
+
+## Run it
+
+```bash
+./cf_updateDNS
 ```
