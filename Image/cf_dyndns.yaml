@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: cf-dyndns
+  namespace: cf-dyndns
+spec:
+  containers:
+  - name: cf-dyndns
+    image: rsantomauro/cloudflare_dyn_dns:v3
+    replicas: 1
+    env:
+      - name: CF_API_KEY
+        value: APIKEY
+      - name: CF_ZONE_ID
+        value: ZoneID
+      - name: CF_RECORD_ID
+        value: recordID
+      - name: CF_RECORD_NAME
+        value: yourSubdomain
+#    command: ['bash','CloudFare_DynDns/cf_dyndns']
+  restartPolicy: OnFailure
